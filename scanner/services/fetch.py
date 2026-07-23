@@ -1,0 +1,8 @@
+import requests
+
+def fetch(url: str):
+    return requests.get(
+        url,
+        timeout=5,
+        allow_redirects=True,
+    )
