@@ -3,6 +3,7 @@ name = "securityaudit"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "cryptography==49.0.0",
     "django>=6.0.7",
     "requests==2.34.2",
     "response==0.5.0",
