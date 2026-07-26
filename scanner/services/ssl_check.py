@@ -23,11 +23,23 @@ def runsslaudit(host):
         expiration_date, time_remaining = analyze_certificate(cert)
 
         if time_remaining <= 0:
-            return f"Warning: Certificate for {host} has expired on {expiration_date}."
+            return {
+                "status": "expired",
+                "expiration_date": expiration_date.strftime("%Y-%m-%d"),
+                "days_remaining": 0
+            }
         elif time_remaining <= 30:
-            return f"Warning: Certificate for {host} expires in {time_remaining} days."
+            return {
+                "status": "warning",
+                "expiration_date": expiration_date.strftime("%Y-%m-%d"),
+                "days_remaining": time_remaining
+            }
         else:
-            return f"Info: Certificate for {host} is valid."
+            return {
+                "status": "valid",
+                "expiration_date": expiration_date.strftime("%Y-%m-%d"),
+                "days_remaining": time_remaining
+            }
     except Exception as e:
         return f"Error occurred while auditing {host}: {e}"
 

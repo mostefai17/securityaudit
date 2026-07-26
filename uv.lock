@@ -744,6 +744,7 @@ dependencies = [
     { name = "django" },
     { name = "requests" },
     { name = "response" },
+    { name = "sitemap" },
     { name = "urllib3" },
 ]
 
@@ -753,8 +754,15 @@ requires-dist = [
     { name = "django", specifier = ">=6.0.7" },
     { name = "requests", specifier = "==2.34.2" },
     { name = "response", specifier = "==0.5.0" },
+    { name = "sitemap", specifier = "==20191121" },
     { name = "urllib3", specifier = "==2.7.0" },
 ]
+
+[[package]]
+name = "sitemap"
+version = "20191121"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1b/df/4b9c43a9ae042c634d7d19e3a172fc1a88bd139cade8050b3e87d5f3a839/sitemap-20191121.tar.gz", hash = "sha256:00570c0306f697c8786262e105822418bb7bce4826d862991932fad5117002e6", size = 2254 }
 
 [[package]]
 name = "six"
