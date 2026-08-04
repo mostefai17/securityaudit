@@ -1,6 +1,6 @@
 
 import xml.etree.ElementTree as ET
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit, urlunsplit
 import requests
 
 
@@ -12,7 +12,12 @@ def check_sitemap(url: str) -> dict:
     if not url.startswith(("https://", "http://")):
         url = "https://" + url
 
-    sitemap_url = urljoin(url, '/sitemap.xml')
+    parts = urlsplit(url)
+    if not parts.scheme or parts.netloc:
+        return {"error": "Invalid URLProvider"}
+    base_url = urlunsplit((parts.scheme, parts.netloc, "", "",""))
+    sitemap_url = base_url.rstrip("/") + "/sitemap.xml"
+
     result = {
         "url_checked": sitemap_url,
         "exists": False,

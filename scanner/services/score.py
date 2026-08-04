@@ -4,20 +4,27 @@ def calculate_score(website,headers,ssl,robots,sitemap):
     score = 0
     max_score = 100
 
-    if website["reachable"]:
+    try:
+        if website["reachable"] is None:
+            return {"grade": "N/A", "score": 0, "security percentage": "N/A"}
+    except Exception as e:
+        return {"error": f"Error calculating score: {e}"}
+
+    if website and website.get("reachable"):
         score += 25
 
-    if headers["score"] and headers["max_score"]:
+    if headers and headers.get("score") is not None and headers.get("max_score"):
         score += 20
 
-    if ssl["status"]:
-        score += 25
+    if ssl and ssl.get("status") == "valid":
+        score += 20
 
-    if robots["status_code"] == 200:
+    if robots and robots.get("is_valid_robots") == True:
         score += 15
 
-    if sitemap["status_code"] == 200:
+    if sitemap and sitemap.get("is_valid_xml") == True:
         score += 15
+
 
     if score >= 90:
         return {

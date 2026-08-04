@@ -41,7 +41,11 @@ def runsslaudit(host):
                 "days_remaining": time_remaining
             }
     except Exception as e:
-        return f"Error occurred while auditing {host}: {e}"
+        return {
+            "status": "error",
+            "error": str(e),
+            "days_remaining": 0
+        }
 
 
 if __name__ == "__main__":

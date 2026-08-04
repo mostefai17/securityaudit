@@ -1,3 +1,7 @@
+from urllib.parse import urlparse
+
+import response
+
 from .score import calculate_score
 from .headers import security_headers
 from .ssl_check import runsslaudit
@@ -7,21 +11,30 @@ from .robots import check_robots
 from .fetch import fetch
 
 
+
 def run_security_audit(url : str) -> dict:
 
-    # Recieving url
-
+    # Receiving url
     url = url.strip()
-    if url.startswith(("https://", "http://")):
-        pass
-    else:
+    if not url.startswith(("https://", "http://")):
         url = "https://" + url
 
-    fetch_response = fetch(url)
-    website_results = website_check(url)
+    parsed_url = urlparse(url)
+    if not parsed_url.netloc or not parsed_url.scheme:
+        return {"error": "Invalid URL"}
+    host = parsed_url.netloc
+
+    response = fetch(url)
+
+    website_results = website_check(url, response)
+    headers_results = security_headers(response)
+
+    if host:
+        ssl_results = runsslaudit(host)
+    else:
+        ssl_results = {"error": "No hostname found in the URL."}
+
     robots_results = check_robots(url)
-    ssl_results = runsslaudit(url)
-    headers_results = security_headers(url)
     sitemap_results = check_sitemap(url)
 
     audit_results = {
@@ -29,15 +42,19 @@ def run_security_audit(url : str) -> dict:
         "headers": headers_results,
         "ssl": ssl_results,
         "robots": robots_results,
-        "score": calculate_score(website_results,headers_results,ssl_results,robots_results,sitemap_results),
-        "sitemap": sitemap_results
+        "sitemap": sitemap_results,
+        "score": calculate_score(website_results, headers_results, ssl_results, robots_results, sitemap_results),
     }
 
+    url_final_boss = website_results.get("final_url") or (response.url if response else url)
+
+    status_code = website_results.get("status_code")
+
     return {
-        "url": fetch_response["url"],
-        "audit": audit_results,
-        "status_code": website_results["status_code"],
-        "final_url": website_results["final_url"],
+        "url": url_final_boss,
+        "audit_results": audit_results,
+        "status_code": status_code,
+        "url_final_boss": url_final_boss,
     }
 
 

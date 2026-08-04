@@ -15,6 +15,9 @@ def website_check(url: str, response) -> dict:
         "final_url": None,
         "uses_https_after_redirect": False,
     }
+    if response is None:
+        results["error"] = "There is no response"
+        return results
 
     try:
         results["reachable"] = response.ok
@@ -26,3 +29,4 @@ def website_check(url: str, response) -> dict:
         results["error"] = str(e)
 
     return results
+

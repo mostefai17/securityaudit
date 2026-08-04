@@ -1,3 +1,4 @@
+from urllib.parse import urlsplit, urlunsplit
 
 import requests
 
@@ -11,6 +12,15 @@ def check_robots(url: str) -> dict:
         url = "https://" + url
 
     robots_url = url.rstrip("/") + "/robots.txt"
+
+    # Checking if there is missing part
+    parts = urlsplit(url)
+    if not parts.scheme or parts.netloc:
+        return {"error": "Invalid URL Provider"}
+
+    base_url = urlunsplit((parts.scheme, parts.netloc, "", "",""))
+    robots_url = base_url.rstrip("/") +"/sitemap.xml"
+
 
     result = {
         "url_checked": robots_url,

@@ -13,8 +13,17 @@ def security_headers(response) -> dict:
     ]
 
     score = 0
-
     findings = {}
+
+    if response is None:
+        for header in security_headers:
+            findings[header] = {
+                "present": False,
+                "value": None,
+            }
+
+        return {"headers": findings, "score": 0, "max_score": len(security_headers), "error": "No response received from the server."}
+
 
     for header in security_headers:
 
