@@ -7,7 +7,7 @@ def calculate_score(website,headers,ssl,robots,sitemap):
     if website["reachable"]:
         score += 25
 
-    if headers["headers"]:
+    if headers["score"] and headers["max_score"]:
         score += 20
 
     if ssl["status"]:

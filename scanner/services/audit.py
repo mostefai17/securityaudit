@@ -4,6 +4,7 @@ from .ssl_check import runsslaudit
 from .sitemap import check_sitemap
 from .website import website_check
 from .robots import check_robots
+from .fetch import fetch
 
 
 def run_security_audit(url : str) -> dict:
@@ -16,6 +17,7 @@ def run_security_audit(url : str) -> dict:
     else:
         url = "https://" + url
 
+    fetch_response = fetch(url)
     website_results = website_check(url)
     robots_results = check_robots(url)
     ssl_results = runsslaudit(url)
@@ -32,7 +34,7 @@ def run_security_audit(url : str) -> dict:
     }
 
     return {
-        "url": url,
+        "url": fetch_response["url"],
         "audit": audit_results,
         "status_code": website_results["status_code"],
         "final_url": website_results["final_url"],
