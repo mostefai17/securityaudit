@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Security Auditor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 3rem 0;
+        }
+        .card {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: none;
+        }
+        .score-badge {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .missing {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .present {
+            color: #198754;
+            font-weight: 500;
+        }
+        .table th {
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero / Header -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Website Security Auditor</h1>
+            <p class="lead mb-0">Automated checks for SSL, headers, robots.txt, sitemap, and reachability.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <!-- Form Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Enter a website URL</h5>
+                        <form method="post" action="{% url 'home' %}">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                {{ form.website }}
+                                <button class="btn btn-primary" type="submit">Audit</button>
+                            </div>
+                            {% if form.website.errors %}
+                                <div class="text-danger mt-2">{{ form.website.errors }}</div>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endif %}
+
+                {% if result %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Results for {{ result.url }}</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="score-badge text-primary">{{ result.audit_results.score.grade }}</span>
+                                <span class="text-muted">/ 100 Points</span>
+                            </div>
+                            <div class="text-end">
+                                <h6>Score: {{ result.audit_results.score.score }}</h6>
+                                <small class="text-muted">Security percentage: {{ result.audit_results.score.security percentage }}</small>
+                            </div>
+                        </div>
+
+                        <!-- Website Info -->
+                        <div class="mt-4">
+                            <h6>Website Reachability</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        {% if result.audit_results.website.reachable %}
+                                            <span class="text-success">✓ Reachable</span>
+                                        {% else %}
+                                            <span class="text-danger">✗ Not reachable</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if result.audit_results.website.status_code %}
+                                <tr>
+                                    <th>HTTP Status</th>
+                                    <td>{{ result.audit_results.website.status_code }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if result.audit_results.website.is_https %}
+                                <tr>
+                                    <th>Uses HTTPS</th>
+                                    <td><span class="text-success">Yes</span></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Headers Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Security Headers</h5>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Header</th>
+                                    <th>Status</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for header, info in result.audit_results.headers.headers.items %}
+                                <tr>
+                                    <td>{{ header }}</td>
+                                    <td>
+                                        {% if info.present %}
+                                            <span class="present">✓ Present</span>
+                                        {% else %}
+                                            <span class="missing">✗ Missing</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ info.value|default:"-" }}</small></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <small class="text-muted">
+                            Score: {{ result.audit_results.headers.score }}/{{ result.audit_results.headers.max_score }}
+                        </small>
+                    </div>
+                </div>
+
+                <!-- SSL Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">SSL / TLS</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    {% if result.audit_results.ssl.status == "valid" %}
+                                        <span class="text-success">Valid</span>
+                                    {% elif result.audit_results.ssl.status == "warning" %}
+                                        <span class="text-warning">Warning</span>
+                                    {% elif result.audit_results.ssl.status == "expired" %}
+                                        <span class="text-danger">Expired</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ result.audit_results.ssl.status|default:"Error" }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if result.audit_results.ssl.expiration_date %}
+                            <tr>
+                                <th>Expiration</th>
+                                <td>{{ result.audit_results.ssl.expiration_date }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if result.audit_results.ssl.days_remaining %}
+                            <tr>
+                                <th>Days remaining</th>
+                                <td>{{ result.audit_results.ssl.days_remaining }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Robots Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Robots.txt</h5>
+                        <p>
+                            {% if result.audit_results.robots.is_valid_robots %}
+                                <span class="text-success">✓ Valid robots.txt found</span>
+                            {% else %}
+                                <span class="text-muted">Not found or invalid</span>
+                            {% endif %}
+                        </p>
+                        {% if result.audit_results.robots.url_checked %}
+                            <small class="text-muted">Checked: {{ result.audit_results.robots.url_checked }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sitemap Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Sitemap</h5>
+                        <p>
+                            {% if result.audit_results.sitemap.is_valid_xml %}
+                                <span class="text-success">✓ Valid XML sitemap found</span>
+                                {% if result.audit_results.sitemap.url_count %}
+                                    <span class="text-muted">({{ result.audit_results.sitemap.url_count }} URLs)</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not found or invalid</span>
+                            {% endif %}
+                        </p>
+                        {% if result.audit_results.sitemap.url_checked %}
+                            <small class="text-muted">Checked: {{ result.audit_results.sitemap.url_checked }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-muted py-4">
+        &copy; 2025 Security Auditor &mdash; built with Django &amp; Bootstrap
+    </footer>
+
+</body>
+</html>
