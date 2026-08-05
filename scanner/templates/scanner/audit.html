@@ -55,7 +55,7 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Enter a website URL</h5>
-                        <form method="post" action="{% url 'home' %}">
+                        <form method="post" action="{% url 'scanner:home' %}">
                             {% csrf_token %}
                             <div class="input-group">
                                 {{ form.website }}
@@ -86,7 +86,7 @@
                             </div>
                             <div class="text-end">
                                 <h6>Score: {{ result.audit_results.score.score }}</h6>
-                                <small class="text-muted">Security percentage: {{ result.audit_results.score.security.percentage }}</small>
+                                <small class="text-muted">Security percentage: {{ result.audit_results.score.security_percentage }}</small>
                             </div>
                         </div>
 
