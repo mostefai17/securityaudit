@@ -4,73 +4,53 @@ def calculate_score(website,headers,ssl,robots,sitemap):
     score = 0
     max_score = 100
 
-    try:
-        if website["reachable"] is None:
-            return {"grade": "N/A", "score": 0, "security percentage": "N/A"}
-    except Exception as e:
-        return {"error": f"Error calculating score: {e}"}
+    if not website or not isinstance(website, dict) or not website.get("reachable"):
+        return {"grade": "F", "score": 0, "security percentage": "0.00%"}
 
-    if website and website.get("reachable"):
-        score += 25
+    score += 25
 
-    if headers and headers.get("score") is not None and headers.get("max_score"):
-        score += 20
+    if headers and isinstance(headers, dict):
+        header_score = headers.get("score")
+        max_header_score = headers.get("max_score")
+        if header_score is not None and max_header_score:
+            score += 20
 
-    if ssl and ssl.get("status") == "valid":
-        score += 20
+    if ssl and isinstance(ssl, dict):
+        if ssl.get("is_valid_ssl"):
+            score += 15
 
-    if robots and robots.get("is_valid_robots") == True:
-        score += 15
+    if robots and isinstance(robots, dict):
+        if robots.get("is_valid_robots"):
+            score += 15
 
-    if sitemap and sitemap.get("is_valid_xml") == True:
-        score += 15
+    if sitemap and isinstance(sitemap, dict):
+        if sitemap.get("is_valid_xml"):
+            score += 15
 
 
     if score >= 90:
-        return {
-            "grade": "A+",
-            "score": score,
-            "security percentage": f"{score/max_score*100:.2f}%"
-        }
+        grade = "A+"
 
     elif score >= 80:
-        return {
-            "grade": "A",
-            "score": score,
-            "security percentage": f"{score/max_score*100:.2f}%"
-        }
+        grade = "A"
 
     elif score >= 70:
-        return {
-            "grade": "B",
-            "score": score,
-            "security percentage": f"{score/max_score*100:.2f}%"
-        }
+        grade = "B"
 
     elif score >= 55:
-        return {
-            "grade": "C",
-            "score": score,
-            "security percentage": f"{score/max_score*100:.2f}%"
-        }
+        grade = "C"
 
     elif score >= 40:
-        return {
-            "grade": "D",
-            "score": score,
-            "security percentage": f"{score/max_score*100:.2f}%"
-        }
+        grade = "D"
 
     elif score >= 25:
-        return {
-            "grade": "E",
-            "score": score,
-            "security percentage": f"{score/max_score*100:.2f}%"
-        }
+        grade = "E"
 
     else:
-        return {
-            "grade": "F",
-            "score": score,
-            "security percentage": f"{score/max_score*100:.2f}%"
-        }
+        grade = "F"
+
+    return {
+        "grade": grade,
+        "score": score,
+        "security percentage": f"{score/max_score*100:.2f}%"
+    }

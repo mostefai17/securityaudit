@@ -1,5 +1,5 @@
 import requests
-from django.template.defaulttags import url
+from django.http import JsonResponse
 
 
 def fetch(url: str):
@@ -10,7 +10,7 @@ def fetch(url: str):
             allow_redirects=True,
             headers={'User-Agent': "SecurityAuditBot/1.0"}
         )
-        return response.text
-    except requests.exceptions.RequestException as e:
-        return f"Error fetching URL: {e}"
+        return response
+    except requests.exceptions.RequestException:
+        return None
 

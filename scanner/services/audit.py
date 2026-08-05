@@ -1,7 +1,4 @@
 from urllib.parse import urlparse
-
-import response
-
 from .score import calculate_score
 from .headers import security_headers
 from .ssl_check import runsslaudit
@@ -10,10 +7,7 @@ from .website import website_check
 from .robots import check_robots
 from .fetch import fetch
 
-
-
 def run_security_audit(url : str) -> dict:
-
     # Receiving url
     url = url.strip()
     if not url.startswith(("https://", "http://")):
@@ -22,7 +16,8 @@ def run_security_audit(url : str) -> dict:
     parsed_url = urlparse(url)
     if not parsed_url.netloc or not parsed_url.scheme:
         return {"error": "Invalid URL"}
-    host = parsed_url.netloc
+
+    host = parsed_url.hostname
 
     response = fetch(url)
 
@@ -46,15 +41,14 @@ def run_security_audit(url : str) -> dict:
         "score": calculate_score(website_results, headers_results, ssl_results, robots_results, sitemap_results),
     }
 
-    url_final_boss = website_results.get("final_url") or (response.url if response else url)
-
+    final_url = website_results.get("final_url") or (response.url if response else url)
     status_code = website_results.get("status_code")
 
     return {
-        "url": url_final_boss,
+        "url": final_url,
         "audit_results": audit_results,
         "status_code": status_code,
-        "url_final_boss": url_final_boss,
+        "url_final_boss": final_url,
     }
 
 

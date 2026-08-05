@@ -11,15 +11,13 @@ def check_robots(url: str) -> dict:
     if not url.startswith(("https://", "http://")):
         url = "https://" + url
 
-    robots_url = url.rstrip("/") + "/robots.txt"
-
     # Checking if there is missing part
     parts = urlsplit(url)
-    if not parts.scheme or parts.netloc:
+    if not parts.scheme or not parts.netloc:
         return {"error": "Invalid URL Provider"}
 
     base_url = urlunsplit((parts.scheme, parts.netloc, "", "",""))
-    robots_url = base_url.rstrip("/") +"/sitemap.xml"
+    robots_url = base_url.rstrip("/") +"/robots.txt"
 
 
     result = {
