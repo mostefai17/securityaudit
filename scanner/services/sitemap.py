@@ -13,7 +13,7 @@ def check_sitemap(url: str) -> dict:
         url = "https://" + url
 
     parts = urlsplit(url)
-    if not parts.scheme or parts.netloc:
+    if not parts.scheme or not parts.netloc:
         return {"error": "Invalid URLProvider"}
     base_url = urlunsplit((parts.scheme, parts.netloc, "", "",""))
     sitemap_url = base_url.rstrip("/") + "/sitemap.xml"

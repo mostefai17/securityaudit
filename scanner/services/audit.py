@@ -1,13 +1,15 @@
 from urllib.parse import urlparse
-from .score import calculate_score
-from .headers import security_headers
-from .ssl_check import runsslaudit
-from .sitemap import check_sitemap
-from .website import website_check
-from .robots import check_robots
 from .fetch import fetch
+from .headers import security_headers
+from .robots import check_robots
+from .score import calculate_score
+from .sitemap import check_sitemap
+from .ssl_check import runsslaudit
+from .website import website_check
+
 
 def run_security_audit(url : str) -> dict:
+
     # Receiving url
     url = url.strip()
     if not url.startswith(("https://", "http://")):

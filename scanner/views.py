@@ -1,12 +1,13 @@
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render,redirect
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 from urllib.parse import urlsplit
 from .forms import WebsiteForm
+from .services.audit import run_security_audit
 from .services.sitemap import check_sitemap
 from django.shortcuts import render
-from .services.audit import run_security_audit
+
 # Create your views here.
 
 def get_website_name(request):
@@ -49,9 +50,12 @@ def audit_view(request):
         form = WebsiteForm(request.POST)
         if form.is_valid():
             url = form.cleaned_data['website']
-            result = {'url', url}
-            if 'error' in result:
-                error = result['error']
+            try:
+                result = run_security_audit(url)
+                if 'error' in result:
+                    error = result['error']
+            except Exception as e:
+                error = f"An error occurred during the audit: {str(e)}"
     else:
         form = WebsiteForm()
 

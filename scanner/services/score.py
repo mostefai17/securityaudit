@@ -16,7 +16,7 @@ def calculate_score(website,headers,ssl,robots,sitemap):
             score += 20
 
     if ssl and isinstance(ssl, dict):
-        if ssl.get("is_valid_ssl"):
+        if ssl.get("status") in ("valid","warning"):
             score += 15
 
     if robots and isinstance(robots, dict):
