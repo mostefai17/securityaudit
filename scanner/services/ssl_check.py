@@ -8,7 +8,7 @@ from cryptography.hazmat.backends import default_backend
 def analyze_certificate(cert_pem):
     cert_der = ssl.PEM_cert_to_DER_cert(cert_pem)
     cert = x509.load_der_x509_certificate(cert_der, default_backend())
-    expiration_date = cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+    expiration_date = cert.not_valid_after_utc
     current_date = datetime.datetime.now(datetime.timezone.utc)
     time_diff = expiration_date - current_date
     time_remaining = time_diff.days
