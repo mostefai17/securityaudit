@@ -57,4 +57,4 @@ htmlcov/
 # Project specific
 .aider*
 .junie
-uv.lock
+uv.lock.env

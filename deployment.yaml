@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: security-audit
+  labels:
+    app: security-audit-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: security-audit-app
+  template:
+    metadata:
+      labels:
+        app: security-audit-app
+    spec:
+      containers:
+      - name: security-audit
+        image: scanner-app:latest
+        imagePullPolicy: Never # Forces Kubernetes to use the local image you just built
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: django-configmap
+        - secretRef:
+            name: django-secrets
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-scanner-service
+spec:
+  type: NodePort # Exposes the service outside the cluster on Minikube
+  selector:
+    app: security-audit-app
+  ports:
+    - protocol: TCP
+      port: 8000      # The port the service listens on inside the cluster
+      targetPort: 8000 # The port your Django app runs on inside the container
+      nodePort: 30080  # Optional: Fixed external port (must be between 30000-32767)
