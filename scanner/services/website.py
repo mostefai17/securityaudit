@@ -20,7 +20,7 @@ def website_check(url: str, response) -> dict:
         return results
 
     try:
-        results["reachable"] = response is True
+        results["reachable"] = response.ok
         results["status_code"] = response.status_code
         results["final_url"] = response.url
         results["uses_https_after_redirect"] = response.url.startswith("https://")

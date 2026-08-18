@@ -58,3 +58,6 @@ htmlcov/
 .aider*
 .junie
 uv.lock.env
+
+# Deployment Specific
+/k8s/secret.yaml
