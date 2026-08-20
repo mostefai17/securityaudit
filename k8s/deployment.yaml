@@ -17,7 +17,7 @@ spec:
       containers:
       - name: security-audit
         image: scanner-app:latest
-        imagePullPolicy: Never # Forces Kubernetes to use the local image you just built
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
         envFrom:

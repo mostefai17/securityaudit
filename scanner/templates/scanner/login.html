@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Security Auditor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --navy-900: #153d73;
+            --navy-700: #1e3c72;
+            --navy-600: #2a5298;
+            --navy-500: #3c6ecf;
+            --panel: rgba(255,255,255,0.96);
+            --muted: #6c757d;
+            --border: rgba(21, 61, 115, 0.12);
+        }
+
+        body {
+            background: linear-gradient(135deg, #142d52 0%, #244d8d 100%);
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-nav {
+            background: linear-gradient(135deg, #123663 0%, #234d8d 100%);
+            box-shadow: 0 8px 18px rgba(10, 27, 55, 0.18);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .auth-nav .navbar-brand,
+        .auth-nav .nav-link {
+            color: #f8fbff !important;
+            font-weight: 600;
+        }
+
+        .auth-nav .nav-link:hover {
+            opacity: 0.82;
+        }
+
+        .auth-shell {
+            padding: 2rem 1rem 3rem;
+            min-height: calc(100vh - 72px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-card {
+            background: var(--panel);
+            border-radius: 1.1rem;
+            box-shadow: 0 18px 45px rgba(9, 24, 45, 0.24);
+            padding: 2.2rem 2rem;
+            width: 100%;
+            max-width: 430px;
+            border: 1px solid var(--border);
+        }
+
+        .auth-card .brand {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-card .brand h2 {
+            font-weight: 800;
+            color: var(--navy-700);
+            margin-bottom: 0.2rem;
+        }
+
+        .auth-card .brand p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--navy-700) 0%, var(--navy-600) 100%);
+            border: none;
+            box-shadow: 0 8px 16px rgba(30, 60, 114, 0.20);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-700) 100%);
+            border: none;
+        }
+
+        .btn-outline-secondary {
+            border-color: rgba(30, 60, 114, 0.35);
+            color: var(--navy-700);
+        }
+
+        .btn-outline-secondary:hover {
+            background: rgba(30, 60, 114, 0.06);
+            border-color: rgba(30, 60, 114, 0.4);
+            color: var(--navy-700);
+        }
+
+        .form-control {
+            border: 1px solid rgba(21, 61, 115, 0.2);
+            background: #f9fbff;
+            border-radius: 0.75rem;
+            padding: 0.8rem 0.9rem;
+        }
+
+        .form-control:focus {
+            border-color: rgba(42, 82, 152, 0.7);
+            box-shadow: 0 0 0 0.2rem rgba(42,82,152,0.15);
+            background: #fff;
+        }
+
+        .divider {
+            text-align: center;
+            color: #8a93a5;
+            margin: 1.1rem 0 0.9rem;
+            font-size: 0.85rem;
+            position: relative;
+        }
+
+        .divider::before {
+            content: "";
+            display: block;
+            border-top: 1px solid rgba(21, 61, 115, 0.12);
+            margin: 0.8rem 0;
+        }
+
+        .divider span {
+            display: inline-block;
+            background: #fff;
+            transform: translateY(-1.4rem);
+            padding: 0 0.8rem;
+        }
+
+        .alert {
+            border-radius: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark auth-nav">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'scanner:home' %}">🔒 Security Auditor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#authNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="authNavbar">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'scanner:home' %}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'scanner:login' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'scanner:register' %}">Register</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="auth-shell">
+        <div class="auth-card">
+            <div class="brand">
+                <h2>Welcome back</h2>
+                <p>Sign in to your account</p>
+            </div>
+
+            {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'scanner:login' %}">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="id_username" class="form-label fw-semibold">Username</label>
+                    <input type="text" id="id_username" name="username" class="form-control"
+                          placeholder="Enter your username" required autofocus>
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_password" class="form-label fw-semibold">Password</label>
+                    <input type="password" id="id_password" name="password" class="form-control"
+                          placeholder="Enter your password" required>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                </div>
+            </form>
+
+            <div class="divider"><span>Don't have an account?</span></div>
+            <div class="d-grid">
+                <a href="{% url 'scanner:register' %}" class="btn btn-outline-secondary">Create Account</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

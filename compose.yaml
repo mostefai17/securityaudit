@@ -4,17 +4,15 @@ services:
 
     ports:
       - "8000:8000"
-    environment:
-      - UV_NO_DEV=1
 
     env_file:
       - .env
 
-    user: root
+    depends_on:
+      - db
 
     develop:
       # Create a `watch` configuration to update the app
-      #
       watch:
         # Sync the working directory with the `/app` directory in the container
         - action: sync
@@ -28,3 +26,14 @@ services:
         # Rebuild the image on changes to the `pyproject.toml`
         - action: rebuild
           path: ./pyproject.toml
+
+  db:
+    image: postgres:16-alpine
+
+    ports:
+      - "5433:5432"
+
+    env_file:
+      - .env
+
+    user: root

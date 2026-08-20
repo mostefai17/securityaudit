@@ -40,9 +40,30 @@
             margin: 0 auto 1.5rem;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        #scan-overlay .progress { height: 10px; border-radius: 5px; background: rgba(255,255,255,0.2); }
-        #scan-overlay .progress-bar { border-radius: 5px; transition: width 0.4s ease; }
-        #scan-step { font-size: 0.9rem; opacity: 0.85; margin-top: 0.6rem; min-height: 1.2em; }
+        #scan-overlay .progress {
+            height: 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.18);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        #scan-overlay .progress-bar {
+            border-radius: 999px;
+            background: linear-gradient(90deg, #d9f6ff 0%, #9be7ff 25%, #f9f7a4 55%, #ffffff 100%);
+            transition: width 0.5s ease, filter 0.3s ease;
+            box-shadow: 0 0 14px rgba(255,255,255,0.35);
+        }
+        #scan-overlay .progress-bar-striped {
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+            background-size: 1rem 1rem;
+        }
+        #scan-step {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.7rem;
+            min-height: 1.2em;
+            letter-spacing: 0.02em;
+        }
         .hero {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
@@ -71,13 +92,46 @@
 </head>
 <body>
 
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'scanner:home' %}">🔒 Security Auditor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'scanner:home' %}">Audit</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'scanner:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <form method="post" action="{% url 'scanner:logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            {% if not user.is_authenticated %}
+                                <a href="{% url 'scanner:login' %}" class="btn btn-outline-light btn-sm me-1">Login</a>
+                                <a href="{% url 'scanner:register' %}" class="btn btn-outline-light btn-sm me-1">Register</a>
+                            {% else %}
+                            <form action="{% url 'scanner:logout' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                            </form>
+                            {% endif %}
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     <!-- Scan progress overlay -->
     <div id="scan-overlay" role="status" aria-live="polite">
         <div class="overlay-box">
             <div class="spinner-ring"></div>
             <h5 class="mb-3">Scanning website…</h5>
-            <div class="progress mb-2">
-                <div id="scan-progress-bar" class="progress-bar bg-light" role="progressbar"
+            <div class="progress mb-2" aria-label="Scan progress">
+                <div id="scan-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-light" role="progressbar"
                      style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
             <div id="scan-step">Initialising…</div>
@@ -101,7 +155,7 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Enter a website URL</h5>
-                        <form method="post" action="{% url 'scanner:home' %}">
+                        <form id="audit-form" method="post" action="{% url 'scanner:home' %}">
                             {% csrf_token %}
                             <div class="input-group">
                                 {{ form.website }}
@@ -285,32 +339,36 @@
     <script>
         (function () {
             const steps = [
-                { label: 'Fetching website…',          pct: 15 },
-                { label: 'Please wait while…', pct: 30 },
-                { label: 'Analysing SSL / TLS…',       pct: 50 },
-                { label: 'Reading robots.txt…',        pct: 65 },
-                { label: 'Checking sitemap…',          pct: 80 },
-                { label: 'Calculating score…',         pct: 95 },
+                { label: 'Initialising scan…', pct: 8 },
+                { label: 'Fetching website…', pct: 20 },
+                { label: 'Checking headers…', pct: 35 },
+                { label: 'Analysing SSL / TLS…', pct: 52 },
+                { label: 'Reading robots.txt…', pct: 68 },
+                { label: 'Checking sitemap…', pct: 82 },
+                { label: 'Calculating security score…', pct: 96 },
             ];
 
-            const overlay  = document.getElementById('scan-overlay');
-            const bar      = document.getElementById('scan-progress-bar');
+            const overlay = document.getElementById('scan-overlay');
+            const bar = document.getElementById('scan-progress-bar');
             const stepText = document.getElementById('scan-step');
-            const form     = document.querySelector('form[action]');
+            const form = document.getElementById('audit-form');
 
             function setProgress(pct, label) {
                 bar.style.width = pct + '%';
-                bar.setAttribute('aria-valuenow', pct);
+                bar.setAttribute('aria-valuenow', String(pct));
                 stepText.textContent = label;
             }
 
             function runSteps(index) {
-                if (index >= steps.length) return;
-                const s = steps[index];
-                // spread steps roughly over a 12-second window
-                const delay = index === 0 ? 300 : 1800 + Math.random() * 600;
+                if (index >= steps.length) {
+                    setProgress(100, 'Finalising results…');
+                    return;
+                }
+
+                const current = steps[index];
+                const delay = index === 0 ? 300 : 900 + Math.random() * 500;
                 setTimeout(function () {
-                    setProgress(s.pct, s.label);
+                    setProgress(current.pct, current.label);
                     runSteps(index + 1);
                 }, delay);
             }
@@ -319,10 +377,11 @@
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
                     overlay.classList.add('active');
-                    setProgress(5, 'Initialising…');
+                    setProgress(5, 'Preparing scan…');
                     runSteps(0);
-                    // Allow the browser to paint the overlay before submitting
-                    setTimeout(function () { form.submit(); }, 50);
+                    setTimeout(function () {
+                        form.submit();
+                    }, 220);
                 });
             }
         })();

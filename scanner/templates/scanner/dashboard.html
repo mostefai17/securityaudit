@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – Security Auditor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 3rem 0;
+        }
+        .stat-card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        .stat-icon {
+            font-size: 2.2rem;
+        }
+        .quick-action-btn {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border: none;
+            border-radius: 0.5rem;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: opacity 0.2s;
+        }
+        .quick-action-btn:hover {
+            opacity: 0.88;
+            color: #fff;
+        }
+        .section-title {
+            font-weight: 700;
+            color: #1e3c72;
+            border-left: 4px solid #2a5298;
+            padding-left: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'scanner:home' %}">🔒 Security Auditor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'scanner:home' %}">Audit</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'scanner:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <form method="post" action="{% url 'scanner:logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="display-6 fw-bold mb-1">
+                Welcome back, {{ request.user.first_name|default:request.user.username }}!
+            </h1>
+            <p class="lead mb-0 opacity-75">Here's an overview of your security audit activity.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+
+        <!-- Stats Row -->
+        <div class="row g-4 mb-5">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card stat-card h-100 p-4 text-center">
+                    <div class="stat-icon mb-2">📋</div>
+                    <h5 class="fw-bold text-muted mb-1">Total Audits</h5>
+                    <p class="fs-2 fw-bold text-primary mb-0">{{ total_audits|default:"0" }}</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card stat-card h-100 p-4 text-center">
+                    <div class="stat-icon mb-2">✅</div>
+                    <h5 class="fw-bold text-muted mb-1">Avg. Score</h5>
+                    <p class="fs-2 fw-bold text-success mb-0">{{ avg_score|default:"—" }}</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card stat-card h-100 p-4 text-center">
+                    <div class="stat-icon mb-2">🌐</div>
+                    <h5 class="fw-bold text-muted mb-1">Sites Scanned</h5>
+                    <p class="fs-2 fw-bold text-info mb-0">{{ sites_scanned|default:"0" }}</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card stat-card h-100 p-4 text-center">
+                    <div class="stat-icon mb-2">⚠️</div>
+                    <h5 class="fw-bold text-muted mb-1">Issues Found</h5>
+                    <p class="fs-2 fw-bold text-warning mb-0">{{ issues_found|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-5">
+            <h5 class="section-title">Quick Actions</h5>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="{% url 'scanner:home' %}" class="quick-action-btn">🔍 Run New Audit</a>
+                <a href="{% url 'scanner:register' %}" class="btn btn-outline-secondary px-4">➕ Add User</a>
+            </div>
+        </div>
+
+        <!-- Recent Audits -->
+        <div>
+            <h5 class="section-title">Recent Audits</h5>
+            {% if recent_audits %}
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>URL</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for audit in recent_audits %}
+                                    <tr>
+                                        <td class="text-break">{{ audit.url }}</td>
+                                        <td>
+                                            <span class="badge {% if audit.score >= 80 %}bg-success{% elif audit.score >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                                {{ audit.score }}
+                                            </span>
+                                        </td>
+                                        <td class="text-muted">{{ audit.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card border-0 shadow-sm p-4 text-center text-muted">
+                    <p class="mb-2">No audits yet.</p>
+                    <a href="{% url 'scanner:home' %}" class="quick-action-btn d-inline-block mx-auto" style="max-width:200px;">Run your first audit</a>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-muted py-4 border-top mt-5">
+        <small>Security Auditor &copy; {% now "Y" %}</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

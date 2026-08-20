@@ -4,7 +4,6 @@ FROM python:3.12-slim AS builder
 # Set up your working directory and copyting UV binaries
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:0.5.0 /uv /uvx /bin/
-
 # Copy configuration files for dependancy installaiton
 COPY pyproject.toml uv.lock ./
 
@@ -25,4 +24,8 @@ COPY . .
 #Place the virual environment binaries directly into the PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
