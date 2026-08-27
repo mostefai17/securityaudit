@@ -95,6 +95,24 @@
 
     <!-- Main Content -->
     <div class="container my-5">
+        <form action="" class="row g-2 align-items-end-mb-4">
+            <div class="col-auto">
+                <label for="" class="from-label small mb-0">Form</label>
+                <input type="date" name="date-from" class="form-control form-control-sm" value="{{ request.GET.date_from| default:filter_date_from| default:''  }}">
+            </div>
+            <div class="col-auto">
+                <label for="" class="form-label small mb-0">To</label>
+                <input type="date" name="date-to" class="form-control form-control-sm" value="{{ request.GET.date_to| default:filter_date_to| default:''  }}">
+            </div>
+            <div class="col-auto">
+                <label for="" class="from-label small mb-0">Domain</label>
+                <input type="date" name="domain" placeholder="example.com" class="form-control" value="{{ request.GET.domain| default:filter_domain| default:''  }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                <a href="{% url 'scanner:dashboard' %}" class="btn btn-outline-secondary ms-1">Clear</a>
+            </div>
+        </form>
 
         <!-- Stats Row -->
         <div class="row g-4 mb-5">
@@ -176,6 +194,20 @@
         </div>
 
     </div>
+    <div class="card p-3">
+        {% if user.is_authenticated %}
+            <h5>Website audit summary</h5>
+            <p>Below You'll find audit summary in a CSV format</p>
+            <a href="{% url 'scanner:dashboard/csv' %}" class="btn btn-success d-inline-flex align-items-center gap-2">
+                <svg xmlns="http://w3.org" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                </svg>
+                Download Full Audit CSV
+            </a>
+         {% endif %}
+    </div>
+
 
     <!-- Footer -->
     <footer class="text-center text-muted py-4 border-top mt-5">

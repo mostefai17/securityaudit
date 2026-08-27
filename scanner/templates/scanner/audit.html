@@ -104,23 +104,22 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'scanner:home' %}">Audit</a>
                     </li>
+                    {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'scanner:dashboard' %}">Dashboard</a>
+                        <a class="nav-link" href="{% url 'scanner:dashboard' %}">Dashboard</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <form method="post" action="{% url 'scanner:logout' %}" class="d-inline">
+                        <form action="{% url 'scanner:logout' %}" method="post" class="d-inline">
                             {% csrf_token %}
-                            {% if not user.is_authenticated %}
-                                <a href="{% url 'scanner:login' %}" class="btn btn-outline-light btn-sm me-1">Login</a>
-                                <a href="{% url 'scanner:register' %}" class="btn btn-outline-light btn-sm me-1">Register</a>
-                            {% else %}
-                            <form action="{% url 'scanner:logout' %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                            </form>
-                            {% endif %}
+                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
                         </form>
                     </li>
+                    {% else %}
+                    <li class="nav-item ms-2">
+                        <a href="{% url 'scanner:login' %}" class="btn btn-outline-light btn-sm me-1">Login</a>
+                        <a href="{% url 'scanner:register' %}" class="btn btn-outline-light btn-sm me-1">Register</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

@@ -16,3 +16,8 @@ class AuditReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     score = models.FloatField()
 
+class favorite_website(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+

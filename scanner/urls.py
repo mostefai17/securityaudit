@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .views import export_reports_csv
 
 app_name = "scanner"
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('dashboard/csv', views.export_reports_csv, name='export_reports_csv')
 ]
