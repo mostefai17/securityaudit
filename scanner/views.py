@@ -120,7 +120,7 @@ def register_view(request):
             user.first_name = (request.POST.get("first_name") or "").capitalize()
             user.last_name = (request.POST.get("last_name") or "").capitalize()
             user.save()
-            return redirect("scanner:home")
+            return redirect("scanner:dashboard")
     else:
         form = CustomUserCreationForm()
     return render(request, 'scanner/register.html', {'form': form})

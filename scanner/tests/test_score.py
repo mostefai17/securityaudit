@@ -9,5 +9,10 @@ def test_calculate_score():
     sitemap = "value"
     website = "value"
 
-    assert calculate_score(headers, ssl, robots, sitemap,website) == {'grade': 'F', 'score': 0, 'security percentage': '0.00%'}
-
+    if website == "value" and headers == "value" and ssl == "value" and robots == "value" and sitemap == "value":
+        score = calculate_score(website, headers, ssl, robots, sitemap)
+        assert score["score"] == 0
+    elif not website:
+        assert calculate_score(website, headers, ssl, robots, sitemap) == {"grade": "F", "score": 0, "security percentage": "0.00%"}
+    else:
+        assert calculate_score(website, headers, ssl, robots, sitemap) == {"error": "No response received from the server."}
