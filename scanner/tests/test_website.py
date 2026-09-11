@@ -56,7 +56,7 @@ def test_website_check_not_reachable():
     mock_response.url = "https://example.com"
 
     result = website_check("https://example.com", response=mock_response)
-
+    # Assert
     assert result["reachable"] is False
     assert result["status_code"] == 503
 
