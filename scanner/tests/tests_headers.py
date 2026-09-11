@@ -2,7 +2,8 @@ import pytest
 from unittest.mock import MagicMock
 from scanner.services.headers import security_headers
 
-def test_security_headers():
+
+def test_security_headers_all_present():
     mock_response = MagicMock()
     mock_response.headers = {
         "X-Frame-Options": "SAMEORIGIN",
@@ -12,12 +13,32 @@ def test_security_headers():
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Permissions-Policy": "geolocation=()",
-        "X-Permitted-Cross-Domain-Policies": "none",
-        "X-Download-Options": "noopen",
     }
     # Act
-    respone = security_headers(response=mock_response)
+    result = security_headers(response=mock_response)
     # Assert
-    assert respone["headers"] == True
-    assert respone["score"] == 10
-    assert respone["max_score"] == 10
+    assert isinstance(result["headers"], dict)
+    assert result["score"] == 7
+    assert result["max_score"] == 7
+    for header in result["headers"].values():
+        assert header["present"] is True
+
+
+def test_security_headers_none_present():
+    mock_response = MagicMock()
+    mock_response.headers = {}
+
+    result = security_headers(response=mock_response)
+
+    assert result["score"] == 0
+    assert result["max_score"] == 7
+    for header in result["headers"].values():
+        assert header["present"] is False
+
+
+def test_security_headers_no_response():
+    result = security_headers(response=None)
+
+    assert result["score"] == 0
+    assert result["error"] == "No response received from the server."
+    assert result["max_score"] == 7
