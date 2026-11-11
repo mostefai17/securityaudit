@@ -1,0 +1,14 @@
+name: Audit Workflow
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  example-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print a Welcome message
+        run: echo "Welcome to GithubActions"
