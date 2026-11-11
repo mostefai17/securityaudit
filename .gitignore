@@ -54,6 +54,7 @@ db.sqlite3-journal
 .pytest_cache/
 htmlcov/
 .idea
+.ollamaassist
 # Project specific
 .aider*
 .junie
@@ -61,5 +62,4 @@ uv.lock.env
 
 # Deployment Specific
 /k8s/secret.yaml
-.idea
-.ollamassist
+
