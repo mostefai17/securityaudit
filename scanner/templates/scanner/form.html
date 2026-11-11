@@ -1,0 +1,20 @@
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Scan Target</button>
+</form>
+{% if results %}
+    <hr>
+    <h2>Scan results</h2>
+    <ul>
+        <li><strong>HTTPS Configuration</strong>{% if results.is_https %} Secure {% else %} Insecure {% endif %}</li>
+        <li><strong>Reachable:</strong>{% if results.reachable %} YES {% else %} NO {% endif %}</li>
+        {% if result.status_code %}
+            <li><strong>Status Code:</strong>{% if results.status_code %} {{ results.status_code }} {% endif %}</li>
+         {% endif %}
+        {% if result.error %}
+            <li><strong>Error:</strong>{{ results.error }}</li>
+        {% endif %}
+    </ul>
+
+{% endif %}

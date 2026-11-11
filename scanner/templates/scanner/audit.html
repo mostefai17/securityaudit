@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Security Auditor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Progress overlay */
+        #scan-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 60, 114, 0.82);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        #scan-overlay.active { display: flex; }
+        #scan-overlay .overlay-box {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 1rem;
+            padding: 2.5rem 3rem;
+            text-align: center;
+            min-width: 340px;
+        }
+        #scan-overlay .spinner-ring {
+            width: 64px; height: 64px;
+            border: 6px solid rgba(255,255,255,0.25);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #scan-overlay .progress {
+            height: 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.18);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        #scan-overlay .progress-bar {
+            border-radius: 999px;
+            background: linear-gradient(90deg, #d9f6ff 0%, #9be7ff 25%, #f9f7a4 55%, #ffffff 100%);
+            transition: width 0.5s ease, filter 0.3s ease;
+            box-shadow: 0 0 14px rgba(255,255,255,0.35);
+        }
+        #scan-overlay .progress-bar-striped {
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+            background-size: 1rem 1rem;
+        }
+        #scan-step {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.7rem;
+            min-height: 1.2em;
+            letter-spacing: 0.02em;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 3rem 0;
+        }
+        .card {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: none;
+        }
+        .score-badge {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .missing {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .present {
+            color: #198754;
+            font-weight: 500;
+        }
+        .table th {
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'scanner:home' %}">🔒 Security Auditor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'scanner:home' %}">Audit</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'scanner:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <form action="{% url 'scanner:logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="nav-item ms-2">
+                        <a href="{% url 'scanner:login' %}" class="btn btn-outline-light btn-sm me-1">Login</a>
+                        <a href="{% url 'scanner:register' %}" class="btn btn-outline-light btn-sm me-1">Register</a>
+                    </li>
+                        {% if user.is_authenticated %}
+                            <span class="nav-text me-2"> Welcome, {{ user.username }}!</span>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Scan progress overlay -->
+    <div id="scan-overlay" role="status" aria-live="polite">
+        <div class="overlay-box">
+            <div class="spinner-ring"></div>
+            <h5 class="mb-3">Scanning website…</h5>
+            <div class="progress mb-2" aria-label="Scan progress">
+                <div id="scan-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-light" role="progressbar"
+                     style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div id="scan-step">Initialising…</div>
+        </div>
+    </div>
+
+    <!-- Hero / Header -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Website Security Auditor</h1>
+            <p class="lead mb-0">Automated checks for SSL, headers, robots.txt, sitemap, and reachability.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <!-- Form Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Enter a website URL</h5>
+                        <form id="audit-form" method="post" action="{% url 'scanner:home' %}">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                {{ form.website }}
+                                <button class="btn btn-primary" type="submit">Audit</button>
+                            </div>
+                            {% if form.website.errors %}
+                                <div class="text-danger mt-2">{{ form.website.errors }}</div>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endif %}
+
+                {% if result %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Results for {{ result.url }}</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="score-badge text-primary">{{ result.audit_results.score.grade }}</span>
+                                <span class="text-muted">/ 100 Points</span>
+                            </div>
+                            <div class="text-end">
+                                <h6>Score: {{ result.audit_results.score.score }}</h6>
+                                <small class="text-muted">Security percentage: {{ result.audit_results.score.security_percentage }}</small>
+                            </div>
+                        </div>
+
+                        <!-- Website Info -->
+                        <div class="mt-4">
+                            <h6>Website Reachability</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        {% if result.audit_results.website.reachable %}
+                                            <span class="text-success">✓ Reachable</span>
+                                        {% else %}
+                                            <span class="text-danger">✗ Not reachable</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if result.audit_results.website.status_code %}
+                                <tr>
+                                    <th>HTTP Status</th>
+                                    <td>{{ result.audit_results.website.status_code }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if result.audit_results.website.is_https %}
+                                <tr>
+                                    <th>Uses HTTPS</th>
+                                    <td><span class="text-success">Yes</span></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Headers Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Security Headers</h5>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Header</th>
+                                    <th>Status</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for header, info in result.audit_results.headers.headers.items %}
+                                <tr>
+                                    <td>{{ header }}</td>
+                                    <td>
+                                        {% if info.present %}
+                                            <span class="present">✓ Present</span>
+                                        {% else %}
+                                            <span class="missing">✗ Missing</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ info.value|default:"-" }}</small></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <small class="text-muted">
+                            Score: {{ result.audit_results.headers.score }}/{{ result.audit_results.headers.max_score }}
+                        </small>
+                    </div>
+                </div>
+
+                <!-- SSL Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">SSL / TLS</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    {% if result.audit_results.ssl.status == "valid" %}
+                                        <span class="text-success">Valid</span>
+                                    {% elif result.audit_results.ssl.status == "warning" %}
+                                        <span class="text-warning">Warning</span>
+                                    {% elif result.audit_results.ssl.status == "expired" %}
+                                        <span class="text-danger">Expired</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ result.audit_results.ssl.status|default:"Error" }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if result.audit_results.ssl.expiration_date %}
+                            <tr>
+                                <th>Expiration</th>
+                                <td>{{ result.audit_results.ssl.expiration_date }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if result.audit_results.ssl.days_remaining %}
+                            <tr>
+                                <th>Days remaining</th>
+                                <td>{{ result.audit_results.ssl.days_remaining }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Robots Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Robots.txt</h5>
+                        <p>
+                            {% if result.audit_results.robots.is_valid_robots %}
+                                <span class="text-success">✓ Valid robots.txt found</span>
+                            {% else %}
+                                <span class="text-muted">Not found or invalid</span>
+                            {% endif %}
+                        </p>
+                        {% if result.audit_results.robots.url_checked %}
+                            <small class="text-muted">Checked: {{ result.audit_results.robots.url_checked }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sitemap Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Sitemap</h5>
+                        <p>
+                            {% if result.audit_results.sitemap.is_valid_xml %}
+                                <span class="text-success">✓ Valid XML sitemap found</span>
+                                {% if result.audit_results.sitemap.url_count %}
+                                    <span class="text-muted">({{ result.audit_results.sitemap.url_count }} URLs)</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not found or invalid</span>
+                            {% endif %}
+                        </p>
+                        {% if result.audit_results.sitemap.url_checked %}
+                            <small class="text-muted">Checked: {{ result.audit_results.sitemap.url_checked }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-muted py-4">
+        &copy; 2026 Security Auditor &mdash; built with Django &amp; Bootstrap
+    </footer>
+
+    <script>
+        (function () {
+            const steps = [
+                { label: 'Initialising scan…', pct: 8 },
+                { label: 'Fetching website…', pct: 20 },
+                { label: 'Checking headers…', pct: 35 },
+                { label: 'Analysing SSL / TLS…', pct: 52 },
+                { label: 'Reading robots.txt…', pct: 68 },
+                { label: 'Checking sitemap…', pct: 82 },
+                { label: 'Calculating security score…', pct: 96 },
+            ];
+
+            const overlay = document.getElementById('scan-overlay');
+            const bar = document.getElementById('scan-progress-bar');
+            const stepText = document.getElementById('scan-step');
+            const form = document.getElementById('audit-form');
+
+            function setProgress(pct, label) {
+                bar.style.width = pct + '%';
+                bar.setAttribute('aria-valuenow', String(pct));
+                stepText.textContent = label;
+            }
+
+            function runSteps(index) {
+                if (index >= steps.length) {
+                    setProgress(100, 'Finalising results…');
+                    return;
+                }
+
+                const current = steps[index];
+                const delay = index === 0 ? 300 : 900 + Math.random() * 500;
+                setTimeout(function () {
+                    setProgress(current.pct, current.label);
+                    runSteps(index + 1);
+                }, delay);
+            }
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    overlay.classList.add('active');
+                    setProgress(5, 'Preparing scan…');
+                    runSteps(0);
+                    setTimeout(function () {
+                        form.submit();
+                    }, 220);
+                });
+            }
+        })();
+    </script>
+
+</body>
+</html>
