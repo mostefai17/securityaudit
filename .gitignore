@@ -61,3 +61,5 @@ uv.lock.env
 
 # Deployment Specific
 /k8s/secret.yaml
+.idea
+.ollamassist

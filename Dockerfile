@@ -1,5 +1,5 @@
 # Start with the official, standard Python image
-FROM python:3.15.0rc1-slim-bookworm  AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 # Set up your working directory and copyting UV binaries
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Stage 2: Final minimal runtinme image
 
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
