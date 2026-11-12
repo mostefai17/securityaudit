@@ -4,6 +4,7 @@ from urllib.parse import urlsplit
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db import DatabaseError
 from django.db.models import Avg
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -65,7 +66,7 @@ def audit_view(request):
                 result = run_security_audit(url)
                 if "error" in result:
                     error = result["error"]
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 error = f"An error occurred during the audit: {e!s}"
 
             # Persist successful audit to AuditReport for authenticated users
@@ -107,7 +108,8 @@ def audit_view(request):
                                     user=request.user, url=url, score=score_float
                                 )
 
-                except Exception:
+                # Using DatabaseError to catch any database-related issues, including IntegrityError
+                except DatabaseError:
                     # Silently fail on persistence; don't crash the audit view
                     pass
         else:
