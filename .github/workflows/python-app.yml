@@ -1,0 +1,42 @@
+name: Python application
+
+on:
+  push:
+    branches: ["development"]
+  pull_request:
+    branches: ["development"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.1.0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # Setting github actions workflow with astral to match uv
+      # look for astral-sh/setup-uv in the marketplace for documentation guide
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --group dev
+
+        # Check https://docs.github.com/en/actions/tutorials/build-and-test-code/python
+        # to see how to use ruff as your linter
+        
+      - name: Lint code with Ruff
+        run: uv run ruff check --output-format=github --target-version=py312
+
+      - name: Check code formatting with Ruff
+        run: uv run ruff format --check --diff
+
+      - name: Test
+        run: uv run pytest
