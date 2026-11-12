@@ -19,7 +19,7 @@ def calculate_score(website, headers, ssl, robots, sitemap):
     if robots and isinstance(robots, dict) and robots.get("is_valid_robots"):
         score += 15
 
-    if sitemap and isinstance(sitemap, dict) and sitemap.get("is_valid_sitemap"):
+    if sitemap and isinstance(sitemap, dict) and sitemap.get("is_valid_xml"):
         score += 15
 
     if score >= 90:
