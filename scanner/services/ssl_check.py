@@ -41,7 +41,7 @@ def runsslaudit(host):
                 "expiration_date": expiration_date.strftime("%Y-%m-%d"),
                 "days_remaining": time_remaining,
             }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {"status": "error", "error": str(e), "days_remaining": 0}
 
 
