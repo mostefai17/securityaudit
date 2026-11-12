@@ -56,3 +56,6 @@ addopts = "--reuse-db"
 [tool.pyright]
 venv = ".venv"
 venvPath = "."
+
+[tool.ruff]
+extend-exclude = ["**/migrations/*", "**/__pycache__/*"]

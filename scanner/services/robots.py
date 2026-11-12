@@ -3,7 +3,7 @@ from urllib.parse import urlsplit, urlunsplit
 import requests
 
 
-def check_robots(url: str) -> dict: 
+def check_robots(url: str) -> dict:
 
     # validate url
     if not isinstance(url, str) or not url.strip():
@@ -17,9 +17,8 @@ def check_robots(url: str) -> dict:
     if not parts.scheme or not parts.netloc:
         return {"error": "Invalid URL Provider"}
 
-    base_url = urlunsplit((parts.scheme, parts.netloc, "", "",""))
-    robots_url = base_url.rstrip("/") +"/robots.txt"
-
+    base_url = urlunsplit((parts.scheme, parts.netloc, "", "", ""))
+    robots_url = base_url.rstrip("/") + "/robots.txt"
 
     result = {
         "url_checked": robots_url,

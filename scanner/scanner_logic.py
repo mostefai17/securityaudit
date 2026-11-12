@@ -1,4 +1,3 @@
-
 import requests
 import requests.exceptions
 
@@ -34,36 +33,31 @@ def website_checking(url: str):
 
     return results
 
-def security_headers(url : str) -> dict:
+
+def security_headers(url: str) -> dict:
 
     try:
         response = requests.get(url, timeout=5, allow_redirects=True)
     except requests.exceptions.RequestException as e:
-        return {"error": f"failed to reach target: {str(e)}"}
+        return {"error": f"failed to reach target: {e!s}"}
 
     security_headers = [
-    "X-Frame-Options",
-    "X-XSS-Protection",
-    "X-Content-Type-Options",
-    "Content-Security-Policy",
-    "Strict-Transport-Security",
-    "Referrer-Policy",
-    "Permissions-Policy",
-]
+        "X-Frame-Options",
+        "X-XSS-Protection",
+        "X-Content-Type-Options",
+        "Content-Security-Policy",
+        "Strict-Transport-Security",
+        "Referrer-Policy",
+        "Permissions-Policy",
+    ]
     score = 0
     content = {}
 
     for header in security_headers:
         if header in response.headers:
-            content[header] = {
-                "status" : True,
-                "value" : response.headers[header]
-            }
+            content[header] = {"status": True, "value": response.headers[header]}
             score += 1
         else:
-            content[header] = {
-                "status" : False,
-                "value" : None
-            }
+            content[header] = {"status": False, "value": None}
 
     return {"content": content, "score": (score / len(security_headers)) * 100}

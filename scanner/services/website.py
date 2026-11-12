@@ -29,4 +29,3 @@ def website_check(url: str, response) -> dict:
         results["error"] = str(e)
 
     return results
-
