@@ -1,10 +1,11 @@
-import pytest
 from unittest.mock import patch
+
 import requests
+
 from scanner.services.robots import check_robots
 
 
-@patch('scanner.services.robots.requests.get')
+@patch("scanner.services.robots.requests.get")
 def test_check_robots_success(mock_get):
     # Arrange: Setup mock response behavior
     mock_get.return_value.status_code = 200
@@ -20,7 +21,7 @@ def test_check_robots_success(mock_get):
     assert result["is_valid_robots"] is True
 
 
-@patch('scanner.services.robots.requests.get')
+@patch("scanner.services.robots.requests.get")
 def test_check_robots_not_found(mock_get):
     mock_get.return_value.status_code = 404
     mock_get.return_value.ok = False
@@ -32,7 +33,7 @@ def test_check_robots_not_found(mock_get):
     assert "404" in result["error_message"]
 
 
-@patch('scanner.services.robots.requests.get')
+@patch("scanner.services.robots.requests.get")
 def test_check_robots_network_error(mock_get):
     mock_get.side_effect = requests.RequestException("Connection refused")
 

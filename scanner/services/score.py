@@ -1,6 +1,4 @@
-
-
-def calculate_score(website,headers,ssl,robots,sitemap):
+def calculate_score(website, headers, ssl, robots, sitemap):
     score = 0
     max_score = 100
 
@@ -15,18 +13,14 @@ def calculate_score(website,headers,ssl,robots,sitemap):
         if header_score is not None and max_header_score:
             score += 20
 
-    if ssl and isinstance(ssl, dict):
-        if ssl.get("status") in ("valid","warning"):
-            score += 15
+    if ssl and isinstance(ssl, dict) and ssl.get("status") in ("valid", "warning"):
+        score += 15
 
-    if robots and isinstance(robots, dict):
-        if robots.get("is_valid_robots"):
-            score += 15
+    if robots and isinstance(robots, dict) and robots.get("is_valid_robots"):
+        score += 15
 
-    if sitemap and isinstance(sitemap, dict):
-        if sitemap.get("is_valid_xml"):
-            score += 15
-
+    if sitemap and isinstance(sitemap, dict) and sitemap.get("is_valid_sitemap"):
+        score += 15
 
     if score >= 90:
         grade = "A+"
@@ -52,5 +46,5 @@ def calculate_score(website,headers,ssl,robots,sitemap):
     return {
         "grade": grade,
         "score": score,
-        "security percentage": f"{score/max_score*100:.2f}%"
+        "security percentage": f"{score / max_score * 100:.2f}%",
     }

@@ -9,7 +9,7 @@ from .ssl_check import runsslaudit
 from .website import website_check
 
 
-def run_security_audit(url : str) -> dict:
+def run_security_audit(url: str) -> dict:
 
     # Receiving url
     url = url.strip()
@@ -41,7 +41,13 @@ def run_security_audit(url : str) -> dict:
         "ssl": ssl_results,
         "robots": robots_results,
         "sitemap": sitemap_results,
-        "score": calculate_score(website_results, headers_results, ssl_results, robots_results, sitemap_results),
+        "score": calculate_score(
+            website_results,
+            headers_results,
+            ssl_results,
+            robots_results,
+            sitemap_results,
+        ),
     }
 
     final_url = website_results.get("final_url") or (response.url if response else url)
@@ -53,4 +59,3 @@ def run_security_audit(url : str) -> dict:
         "status_code": status_code,
         "url_final_boss": final_url,
     }
-

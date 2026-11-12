@@ -1,5 +1,5 @@
-import pytest
 from unittest.mock import MagicMock
+
 from scanner.services.headers import security_headers
 
 

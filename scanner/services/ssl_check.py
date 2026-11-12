@@ -1,6 +1,7 @@
 import datetime
 import socket
 import ssl
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
@@ -9,7 +10,7 @@ def analyze_certificate(cert_pem):
     cert_der = ssl.PEM_cert_to_DER_cert(cert_pem)
     cert = x509.load_der_x509_certificate(cert_der, default_backend())
     expiration_date = cert.not_valid_after_utc
-    current_date = datetime.datetime.now(datetime.timezone.utc)
+    current_date = datetime.datetime.now(datetime.UTC)
     time_diff = expiration_date - current_date
     time_remaining = time_diff.days
 
@@ -26,26 +27,22 @@ def runsslaudit(host):
             return {
                 "status": "expired",
                 "expiration_date": expiration_date.strftime("%Y-%m-%d"),
-                "days_remaining": 0
+                "days_remaining": 0,
             }
         elif time_remaining <= 30:
             return {
                 "status": "warning",
                 "expiration_date": expiration_date.strftime("%Y-%m-%d"),
-                "days_remaining": time_remaining
+                "days_remaining": time_remaining,
             }
         else:
             return {
                 "status": "valid",
                 "expiration_date": expiration_date.strftime("%Y-%m-%d"),
-                "days_remaining": time_remaining
+                "days_remaining": time_remaining,
             }
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e),
-            "days_remaining": 0
-        }
+        return {"status": "error", "error": str(e), "days_remaining": 0}
 
 
 if __name__ == "__main__":

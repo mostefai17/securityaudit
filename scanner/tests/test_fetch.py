@@ -1,4 +1,3 @@
-import pytest
 from scanner.services.fetch import fetch
 
 
@@ -14,6 +13,7 @@ def test_fetch(requests_mock):
 
 def test_fetch_failure(requests_mock):
     import requests
+
     url = "https://unreachable.example.com"
     requests_mock.get(url, exc=requests.exceptions.ConnectionError)
 
