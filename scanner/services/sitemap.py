@@ -1,7 +1,8 @@
-import xml.etree.ElementTree as ET
 from urllib.parse import urlsplit, urlunsplit
 
 import requests
+from defusedxml import DefusedXmlException
+from defusedxml import ElementTree as ET
 
 
 def check_sitemap(url: str) -> dict:
@@ -48,7 +49,7 @@ def check_sitemap(url: str) -> dict:
 
                 result["url_count"] = len(urls) if urls else len(sitemaps)
 
-            except ET.ParseError:
+            except (ET.ParseError, DefusedXmlException):
                 result["is_valid_xml"] = False
                 result["error_message"] = "File found but it's not valid XML"
         else:

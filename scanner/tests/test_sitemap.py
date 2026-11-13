@@ -53,3 +53,22 @@ def test_check_sitemap_invalid_xml(mock_get):
     assert result["exists"] is False
     assert result["status_code"] == 404
     assert "HTTP error 404" in result["error_message"]
+
+
+@patch("scanner.services.sitemap.requests.get")
+def test_check_sitemap_rejects_dtd_and_entities(mock_get):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.ok = True
+    mock_response.text = (
+        '<?xml version="1.0"?>'
+        '<!DOCTYPE urlset [<!ENTITY xxe "file:///etc/passwd">]>'
+        "<urlset><url><loc>&xxe;</loc></url></urlset>"
+    )
+    mock_get.return_value = mock_response
+
+    result = check_sitemap("example.com")
+
+    assert result["exists"] is True
+    assert result["is_valid_xml"] is False
+    assert result["error_message"] == "File found but it's not valid XML"

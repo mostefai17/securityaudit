@@ -1,0 +1,60 @@
+name: Weekly maintenance
+
+# Checks that should NOT run on every pull request.
+# Linting and tests already run on pull requests in python-app.yml,
+# so this workflow only covers things that go stale over time:
+# available dependency upgrades, the lockfile, known CVEs and risky code.
+#
+# Runs every Friday at 11:45 UTC (cron minutes are UTC, day-of-week 5 = Friday).
+# It can also be started by hand from the Actions tab ("Run workflow" button).
+
+on:
+  schedule:
+    - cron: "45 11 * * 5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.1.0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      # Step 1: which packages have newer versions on PyPI?
+      # "uv sync --upgrade" cannot be used here: it rewrites uv.lock inside the
+      # throw-away runner and the change is never committed, and it would also
+      # hide real drift from the checks below. "uv lock --upgrade --dry-run"
+      # only reports the upgrades, so uv.lock stays untouched.
+      # Fix: run "uv sync --upgrade" locally, run the tests, commit uv.lock.
+      - name: Report available dependency upgrades (read-only)
+        run: uv lock --upgrade --dry-run
+
+      # Step 2: is uv.lock still in sync with pyproject.toml?
+      # Fails when someone edits dependencies without running "uv lock".
+      # Fix: run "uv lock" locally and commit the updated uv.lock.
+      - name: Check lockfile is in sync
+        run: uv lock --check
+
+      # Step 3: does any pinned package have a published CVE?
+      # "uv run --with pip-audit pip-audit" audits the exact versions from
+      # uv.lock, i.e. what the app actually ships.
+      # Fix: "uv lock --upgrade-package <name>", then "uv sync".
+      - name: Audit dependencies for known vulnerabilities
+        run: uv run --locked --with pip-audit pip-audit
+
+      # Step 4: scan our own code for risky patterns
+      # (unsafe XML parsing, hardcoded passwords, weak hashing, ...).
+      # "-ll" reports MEDIUM and HIGH severity findings.
+      # Fix: correct the reported line, or add "# nosec BXXX" with a reason.
+      - name: Scan code with Bandit (medium and high severity)
+        run: uv run bandit -r scanner securityaudit -x scanner/migrations -ll
