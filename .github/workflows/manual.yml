@@ -1,0 +1,18 @@
+on:
+  workflow_dispatch:
+    inputs:
+      environment: 
+        description: "Choose environment"
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - development
+        
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Application
+        run: echo "deploying the app to ${{ inputs.environment }}"
