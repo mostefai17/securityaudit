@@ -1,0 +1,36 @@
+name: Testing on multiple python versions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  job_1:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [ '3.12', '3.13', '3.14' ]  
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6.1.0
+        name: setup python ${{ matrix.python-version }} 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: astral-sh/setup-uv@v6
+
+        name: install dependencies
+        run: uv sync --locked --group dev
+
+        name: show interpreter version
+        run: python --version
+
+        name: test
+        run: uv run pytest
+
+
