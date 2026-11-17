@@ -1,18 +1,61 @@
+name: Manual deploy
+
+# Started by hand from the Actions tab ("Run workflow" button), never on push.
+# Choose a target environment, and the deployment waits for the approvals
+# configured on that GitHub Environment before it runs.
+
 on:
   workflow_dispatch:
     inputs:
-      environment: 
-        description: "Choose environment"
+      environment:
+        description: "Target environment"
         required: true
         default: staging
         type: choice
-        options:
-          - staging
-          - development
-        
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+# Only one deployment per environment at a time.
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Deploy Application
-        run: echo "deploying the app to ${{ inputs.environment }}"
+      - uses: actions/checkout@v6.1.0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --group dev
+
+      - name: Lint
+        run: uv run ruff check --output-format=github
+
+      - name: Test
+        run: uv run pytest -q
+
+      # Fails if the Dockerfile cannot build, e.g. after a uv.lock change.
+      - name: Build the container image
+        run: docker build -t securityaudit:${{ github.sha }} .
+
+  # Approval rules and secrets come from the environment named in the input.
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Deploy
+        run: echo "Deploying ${{ github.sha }} to ${{ inputs.environment }}"
